@@ -3,6 +3,7 @@ import { db } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { mailService } from "@/lib/mailService";
+import { getTotalCourseLessonCount } from "./course.action";
 
 // add to course to user cart
 export const addCourseToCart = async (courseId: number) => {
@@ -530,6 +531,40 @@ export const getUserCourses = async (userId: number) => {
   }
 };
 
+// check if user has completed the course
+export const checkIfUserCompletedCourse = async (courseId: number) => {
+  try {
+    // get the loggedIn userId
+    const session = await getServerSession(authOptions);
+    const userId = session?.user.id;
+
+    if (!userId) {
+      return {
+        msg: "You are not authorized to check course completion",
+        success: false,
+      };
+    }
+
+    // check if the user has completed the course
+    const isUserCompletedCourse = await db.progressions.findFirst({
+      where: {
+        studentId: +userId,
+        courseId,
+        completed: true,
+      },
+    });
+
+    return { isUserCompletedCourse, success: true };
+  } catch (err) {
+    console.log(err);
+    return {
+      msg: "Error checking course completion",
+      success: false,
+      isUserCompletedCourse: null,
+    };
+  }
+};
+
 // submit user review for a course
 export const submitUserReview = async (data: {
   rating: number;
@@ -663,6 +698,49 @@ export const updateLessonStatus = async (
         completed: true,
       },
     });
+
+    // if all the videos are watched mark the status of the course as finished
+    const courseProgress = await db.progressions.aggregate({
+      _count: {
+        lessonId: true,
+      },
+      where: {
+        studentId: +userId,
+        courseId,
+        completed: true,
+      },
+    });
+
+    // check if the course is already marked as completed
+    const isCourseCompleted = await db.studentCourse.findUnique({
+      where: {
+        studentId_courseId: {
+          studentId: +userId,
+          courseId,
+        },
+      },
+    });
+
+    if (!isCourseCompleted?.markedAsComplete) {
+      // get total lessons in the course
+      const totalLessons = await getTotalCourseLessonCount(courseId);
+
+      if (courseProgress._count.lessonId === totalLessons.totalLessonCount) {
+        await db.studentCourse.update({
+          where: {
+            studentId_courseId: {
+              studentId: +userId,
+              courseId,
+            },
+          },
+          data: {
+            completed: true,
+            completedAt: new Date(),
+            markedAsComplete: true,
+          },
+        });
+      }
+    }
 
     return { msg: "Lesson status updated successfully", success: true };
   } catch (err) {

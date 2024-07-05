@@ -214,15 +214,16 @@ model categorisedCourse {
 }
 
 model studentCourse {
-  id          Int       @id @default(autoincrement())
   studentId   Int
   courseId    Int
   progress    Int?
   completed   Boolean   @default(false)
   startedAt   DateTime?
   completedAt DateTime?
+  markedAsComplete Boolean @default(false)
   course      course    @relation(fields: [courseId], references: [id])
   student     User      @relation(fields: [studentId], references: [id])
+  @@id([studentId, courseId])
 }
 
 model courseSections {
