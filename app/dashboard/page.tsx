@@ -2,7 +2,7 @@ import FamousCourses from "@/components/shared/dashboard/FamousCourses";
 import Header from "@/components/shared/dashboard/Header";
 import Profile from "@/components/shared/dashboard/Profile";
 import Progress from "@/components/shared/dashboard/Progress";
-import Scheduled from "@/components/shared/dashboard/Scheduled";
+// import Scheduled from "@/components/shared/dashboard/Scheduled";
 import Sidebar from "@/components/shared/dashboard/Sidebar";
 import Studying from "@/components/shared/dashboard/Studying";
 import { authOptions } from "@/lib/auth";
@@ -40,8 +40,8 @@ const page = async (props: Props) => {
           </div>
           <div className="flex grow flex-col max-sm:items-center max-sm:justify-center">
             <Profile user={session?.user} />
-            <Progress />
-            <Scheduled />
+            <Progress userId={+session?.user?.id} />
+            {/* <Scheduled /> */}
           </div>
         </div>
       </div>

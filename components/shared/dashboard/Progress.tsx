@@ -1,24 +1,34 @@
 import React from "react";
 import CircularProgress from "./CircularProgress";
+import { getUserCourses } from "@/actions/user.actions";
 
-type Props = {};
+type Props = {
+  userId: number;
+};
 
-const Progress = (props: Props) => {
+const Progress = async ({ userId }: Props) => {
+  const res = await getUserCourses(userId);
+  const courses = res.userCourses;
+
+  const completedCoursesCount = courses.filter(
+    (course: any) => course.completed === true
+  ).length;
+
   return (
     <>
       <div className="rounded-xl border border-[#EDEDED] p-5">
         <div>
           <CircularProgress
-            progress={78}
+            progress={(completedCoursesCount / courses.length) * 100}
             gradient="#FB923C"
-            text1="You've attended"
-            text2="out of 30 classes"
-            highlight="20"
+            text1={`You've completed `}
+            text2={`out of ${courses.length} classes`}
+            highlight={`${completedCoursesCount}`}
             highlightClass="text-[#FB923C]"
           />
         </div>
       </div>
-      <div>
+      {/* <div>
         <div className="mt-5 rounded-xl border border-[#EDEDED] p-5">
           <CircularProgress
             progress={22}
@@ -29,7 +39,7 @@ const Progress = (props: Props) => {
             highlightClass="text-[#10B981]"
           />
         </div>
-      </div>
+      </div> */}
     </>
   );
 };

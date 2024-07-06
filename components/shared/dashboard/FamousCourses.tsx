@@ -28,7 +28,6 @@ const FamousCourses = (props: Props) => {
     if (!res.success) {
       return;
     }
-    console.log(res.popularCourses);
     setPopularCourses(res.popularCourses);
   }, [selectedCategory]);
 
